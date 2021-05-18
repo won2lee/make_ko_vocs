@@ -4,6 +4,45 @@ import re
 import collections
 from collections import Counter
 from tqdm.notebook import tqdm
+from xutils_for_key_vars import make_key_vars
+
+
+def dict_merge(src_dict, tgt_dict):
+    
+    updated_items = 0
+    added_items = 0
+    
+    for k,v in tqdm(src_dict.items()):
+        if k in tgt_dict.keys():
+            tgt_dict[k] =  tgt_dict[k] + v 
+            updated_items += 1
+        else:
+            tgt_dict[k] = v
+            added_items += 1
+    
+    print("updated items : {},  added items : {}".format(updated_items, added_items)) 
+    
+    return updated_items, added_items
+
+
+def dict_subtract(src_dict, tgt_dict):
+    
+    deleted_items = 0
+    for k,v in tqdm(src_dict.items()):        
+        if k in tgt_dict.keys():
+            del tgt_dict[k]
+            deleted_items += 1
+            
+    print("deleted items : {}".format(deleted_items))    
+    
+    return deleted_items
+
+def add_dict_item(key,val,dict):
+    if key in dict.keys():
+        dict[key] = dict[key] + val
+    else:
+        dict[key] = val
+    return dict
 
 
 def counter_vocab_initialize(counters,key_vars): # counters : LIST(TUPLE)
@@ -311,6 +350,152 @@ etc = [' ', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.'
 kor_alpha += etc
 """
 
+# from util_function----------------
+def counter_convert2(test_keyword, key_vars, all_char=False):
+        
+    ch_len = key_vars['ch_len']
+    CHOSUNG = key_vars['CHOSUNG']
+    JUNGSUNG = key_vars['JUNGSUNG']
+    BASE_CODE = key_vars['BASE_CODE']
+    kor_alpha = key_vars['kor_alpha'] 
+    CHOSUNG_LIST  = key_vars['CHOSUNG_LIST'] 
+    JUNGSUNG_LIST = key_vars['JUNGSUNG_LIST']
+    JONGSUNG_LIST = key_vars['JONGSUNG_LIST'] 
+    double_vowel = key_vars['double_vowel'] 
+    s_to_double = key_vars['s_to_double']
+    k_alpha_to_num = key_vars['k_alpha_to_num']
+        
+    split_keyword_list = list(test_keyword)
+    #print(split_keyword_list)
+
+    result = list()
+    indexed = list()
+    to_check = list()
+    num_etc = {}
+    for i,s in enumerate('0123456789-_'):
+        num_etc[s] = i+84
+    n_check = 0  #  이전에 [가-힣]이 없었다  
+    p = re.compile(r'.*[가-힣]+.*')
+    q = re.compile(r'[ㄱ-ㅎㅏ-ㅣ]')
+    
+    for keyword in split_keyword_list:
+        # 한글 여부 check 후 분리
+        if len(keyword)>1:print(keyword, split_keyword_list)
+        if p.match(keyword) is not None:
+            char_code = ord(keyword) - BASE_CODE
+            char1 = int(char_code / CHOSUNG)
+            indexed.append(char1)
+            result.append(CHOSUNG_LIST[char1])
+            #print('초성 : {}'.format(CHOSUNG_LIST[char1]))
+            char2 = int((char_code - (CHOSUNG * char1)) / JUNGSUNG)
+            #print("char2 in double_vowel :{}".format(char2 in double_vowel))
+            if char2 in double_vowel:                
+                indexed += [s + ch_len for s in s_to_double[char2]]
+            else:
+                indexed.append(char2 + ch_len)
+            result.append(JUNGSUNG_LIST[char2])
+            #print('중성 : {}'.format(JUNGSUNG_LIST[char2]))
+            char3 = int((char_code - (CHOSUNG * char1) - (JUNGSUNG * char2)))
+            
+            if char3==0:
+                result.append('#')
+            else:
+                result.append(JONGSUNG_LIST[char3])
+                indexed.append(char3 +ch_len*2)
+            n_check  = 1
+            #print('종성 : {}'.format(JONGSUNG_LIST[char3]))
+        else:
+            result.append(keyword)
+            if keyword in '0123456789-_':
+                 indexed.append(num_etc[keyword])
+            elif keyword == ' ':
+                indexed.append(keyword)
+            elif q.match(keyword) is not None:
+                if n_check == 0: #앞에 정상적인 한글이 없었다면  ㄱ ㄴ 등을 종성으로 인식
+                    if keyword in k_alpha_to_num[1].keys():
+                        indexed.append(k_alpha_to_num[1][keyword])
+                    elif keyword in k_alpha_to_num[0].keys():
+                        indexed.append(k_alpha_to_num[0][keyword])
+
+                else:            #바로 앞에 정상적인 한글이 있었다면  ㄱ ㄴ 등을 초성으로 인식
+                    if keyword in k_alpha_to_num[0].keys():
+                        indexed.append(k_alpha_to_num[0][keyword])
+                    elif keyword in k_alpha_to_num[1].keys():
+                        indexed.append(k_alpha_to_num[1][keyword])              
+            else:
+                if all_char:
+                    indexed.append(keyword)
+                else:
+                    #indexed.append('') 
+                    to_check.append(keyword)
+            
+            n_check  = 0    
+                
+            #if ord(keyword) <127:
+            #    indexed.append(ord(keyword)+54)  # 한글이 아닌 경우 잠정적으로 +54  숫자, 영문 대소문자 포함
+               
+                
+    # result
+    return "".join(result), indexed, to_check    #indexed는 자음(초성과 종성 구분), 모음 구분하여 인덱스 각 => [ㄱ ㅏ ㄱ], [0,28,57]
+
+def normal_to_special2(word, key_vars,all_char=False, show_num = False):
+    
+    #print('normal_to_special')
+    
+    BASE_CODE = key_vars['BASE_CODE']
+    kor_alpha = key_vars['kor_alpha']
+    
+    special = []
+    for i in counter_convert2(word,key_vars, all_char)[1]:
+        if type(i) == str:
+            special.append(i) 
+        elif show_num and i > 83:
+            special.append(kor_alpha[i])
+            
+        else:
+            special.append(chr(i+BASE_CODE))
+
+            
+        #if i != ' ':
+        #    special.append(chr(i+BASE_CODE))
+        #else:
+        #    special.append(' ')       
+    
+    return ''.join(special)
+
+
+def bpe_josa_by_len(josa_dict,key_vars, n_syllable=0):  
+    
+    josa_list = []
+    for k,v in josa_dict.items():
+        josa_list += v 
+
+    josa_list = list(set(josa_list))
+    if '' in josa_list:
+        josa_list.remove('')
+    josa_by_len = {}
+    print(len(josa_list))
+ 
+    if n_syllable > 1:
+        josa_list = [normal_to_special2(s, key_vars) for s in josa_list if len(s) > 1]
+    else:
+        josa_list = [normal_to_special2(s, key_vars) for s in josa_list if len(s) > 0]
+          
+    max_len = min(max([len(s) for s in josa_list]),15)
+    
+    for i in range(max_len+1):
+        josa_by_len[str(i)] = []
+    
+    for j in josa_list:
+        if len(j) > max_len:
+            continue
+        josa_by_len[str(len(j))]+=[j] 
+        
+    
+    return josa_by_len
+
+# ---------------end of from util_function
+
 # 스페셜 글자를 정상적인 글자로 전환
 def special_to_normal2(s,key_vars,keep_double=True):
     BASE_CODE = key_vars['BASE_CODE']
@@ -535,7 +720,12 @@ def voc_combined(vocab):
     return vocab_sub, len(vocab_sub)
 
 
-
+def bpe_voc_in_normal(bpe_vocabs):
+    key_vars = make_key_vars()
+    voc_ex, _ = voc_combined(bpe_vocabs)
+    sorted_voc_ex = sorted(voc_ex.items(), key=lambda x:x[1], reverse=True)
+    readable = [(special_to_normal(k,key_vars),v) for k, v in sorted_voc_ex]
+    return readable, sorted_voc_ex
 
 
 def vocab_select(vocabs,path,iter_size, step_size,step_from_start,save_cyc):

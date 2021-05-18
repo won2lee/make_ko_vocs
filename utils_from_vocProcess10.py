@@ -1,8 +1,9 @@
 import re
 #from tqdm.notebook import tqdm
 from tqdm import tqdm
-from counter_utils import special_to_normal
-from counter_vocab_tuning import add_dict_item
+from counter_utils import special_to_normal, add_dict_item
+
+#from counter_vocab_tuning import add_dict_item
 
 
 def bpe_josa_by_len2(josas,key_vars, n_syllable=0):  

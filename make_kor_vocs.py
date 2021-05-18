@@ -1,26 +1,14 @@
 import re
 import time
+import json
 from collections import Counter
 from tqdm.notebook import tqdm
 import copy
 #from to_k_alpha import convert
 #from utils import *
 
-from counter_utils import json_save, json_read, normal_to_special, special_to_normal #clean !!
-from util_functions import bpe_josa_by_len, normal_to_special2  # temporary clean !!!
-from counter_vocab_tuning import dict_merge, dict_subtract  # temporary clean !!!
-"""
-from counter_utils import *
-from counter_vocab_tuning import *
-from vocab_preprocess import *
-from util_functions import *
-from vocab_tuning_after_bpe import *
-# from make_bpe_sents import *   .......depricated
-from utils_for_sents import *
-"""
-
-from util_plus import bpe_voc_in_normal  #clean !!
-
+from counter_utils import (json_save, json_read, normal_to_special, special_to_normal, 
+                           dict_merge, dict_subtract, bpe_voc_in_normal, bpe_josa_by_len, normal_to_special2) #clean !!
 from xutils_for_key_vars import make_key_vars  #clean !!
 from utils_from_vocProcess10 import bpe_find_to_tune_5, bpe_vocab_tunning5, bpe_find_to_tune_recursive_5 #clean!!!
 
@@ -28,6 +16,7 @@ path0 = '/home/john/Notebook/preProject/create_vocabs/data/'
 file1 = 'vocabs_10.json'
 file2 = 'josa_dict_2020_03_14.json'
 path2 = 'out_data/'
+path = path0+path2
 
 def extract_nouns_verbs_subs():
     
@@ -386,7 +375,7 @@ def save_extracted_vocs(top_nk, top_vk, mid_k, sub_k):
 
 def make_new_vocs(extracted_vocs):
     #path0 = '/home/john/Notebook/preProject'
-    path = path0+path2 #'/NMT_new/folder_Utils/test_data/'
+    #path = path0+path2 #'/NMT_new/folder_Utils/test_data/'
     
     #srvvd_bpe = json_read('./generated_Data11/preproc_0311/bpe_vocabs_027_after_ha_c0_n1.json')
     srvvd_bpe = json_read(path+ 'bpe_vocabs_020_after_nt_c0_n1.json')
@@ -401,12 +390,15 @@ def make_new_vocs(extracted_vocs):
 
 
 def make_my_vocabs():
-    #extracted_vocabs = extract_nouns_verbs_subs()
+
+    extracted_vocabs = extract_nouns_verbs_subs()
     make_to = make_to_noun_verb_subs(extracted_vocabs)
     top_nk, top_vk, mid_k, sub_k = tuning_NVS(make_to)
     extracted_vocs = save_extracted_vocs(top_nk, top_vk, mid_k, sub_k)
+
+    #path = path0+path2
+    #extracted_vocs = json_read(path+'extracted_vocabs_nvs.json')
     new_vocs_small, new_vocs_all = make_new_vocs(extracted_vocs)
-    
     with open(path+"new_vocs_small.json","w") as f:
         f.write(json.dumps(new_vocs_small))
     with open(path+"new_vocs_all.json","w") as f:
@@ -415,10 +407,10 @@ def make_my_vocabs():
     return new_vocs_small, new_vocs_all
 
 if __name__ == '__main__':
-    import json
+    
     #extract_nouns_verbs_subs()
-    with open(path+"extracted_vocabs2021_05_14.json","r") as f:
-        extracted_vocabs = json.load(f)
+    #with open(path+"extracted_vocabs2021_05_14.json","r") as f:
+    #    extracted_vocabs = json.load(f)
     make_my_vocabs()
               
     
