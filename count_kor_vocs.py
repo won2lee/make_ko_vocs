@@ -149,7 +149,9 @@ def vocab_initialize(counters):
     #for k,v in counters.items():
     for k,v in counters:
         _, idx = convert(k)
-        vocab[' '.join([ch_start]+[chr(i+BASE_CODE) for i in idx] + [ch_end])] = v 
+        #vocab[' '.join([ch_start]+[chr(i+BASE_CODE) for i in idx] + [ch_end])] = v 
+        vocab[''.join([chr(i+BASE_CODE) for i in idx])] = v 
+        
     return vocab
 
 def main():
@@ -182,9 +184,9 @@ def main():
     vocab = pre_bpe_vocab_initialize(sorted_10)
     #vocab = vocab_initialize(sorted_20)
     
-    with open('vocabs_10.json', 'w' ) as f:
+    with open('vocabs_10_check.json', 'w' ) as f:
         f.write(json.dumps(vocab))
 
 
-if __name__ == __main__:
+if __name__ == '__main__':
     main()
