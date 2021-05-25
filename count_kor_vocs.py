@@ -1,6 +1,9 @@
 import json
 import re 
+import pandas as pd
 from collections import Counter
+from counter_utils import json_save
+
 
 """
     초성 중성 종성 분리 하기
@@ -37,9 +40,12 @@ len_alpha =86+BASE_CODE
 ch_start = chr(len_alpha-2)
 ch_end = chr(len_alpha-1)
 
-def get_text(file):
-    with open(file, 'r') as f:
-        data = f.read()
+def get_text(file, f_list=True):
+    if f_list:
+        with open(file, 'r') as f:
+            data = f.read()
+    else:
+        data = file
     p = re.compile(r'\<.*\>')
     q = re.compile(r'[^0-9a-zA-Z가-힣\-]')
     d_out = p.sub(' ', data)
@@ -187,6 +193,57 @@ def main():
     with open('vocabs_10_check.json', 'w' ) as f:
         f.write(json.dumps(vocab))
 
+def count_en(to_count):
+    from glob import glob
+    path = ""
+    path2 = "data/"
+    ko_wk = Counter()
+    if 1 in to_count:      
+        print('start reading wiki_files')
+        files = glob(path+'wikiK/*.txt')
+        ko_wk = count_from_file(files)
+        """
+        for fl in tqdm(files):
+            with open(fl,'r') as f:
+                X = f.read().split('\n')    
+            ko_wk = word_count(X, ko_wk)     
+        """        
+        print("len(ko_wk) :{}".format(len(ko_wk)))
+        json_save(ko_wk,path+path2+'counted_vocs_ko_wk')
+
+    """
+    en_news = Counter()
+    if 2 in to_count:
+        print('start reading en_news_files')      
+        for i in tqdm(range(1,4)):
+            df = pd.read_csv(path+'newsEn/articles'+str(i)+'.csv') 
+            en_news = word_count(df['content'], en_news)
+        print("len(en_news) :{}".format(len(en_news)))
+        json_save(en_news,path+path2+'counted_vocs_en_news')
+    """
+    ko_news = Counter()
+    if 2 in to_count:
+        print('start reading translated_ko_news_files')  
+        files = glob(path+'newsKo/*.xlsx')     
+        for fn in files:
+            df = pd.read_excel(fn)
+            parallel = df['ID 원문 번역문'.split(' ')]
+            d_out =  get_text(' '.join(list(parallel['원문'])), f_list=False)
+            ko_news += Counter(d_out.split(' '))
+        print("len(ko_news) :{}".format(len(ko_news)))  
+        json_save(ko_news,path+path2+'counted_vocs_ko_news')
+
+    counters = ko_news+ko_wk
+    json_save(counters,path+path2+'counted_vocs')
+    sorted_count = sorted(counters.items(), key=lambda x:x[1], reverse=True)
+    sorted_10 = [x for x in sorted_count if x[1] > 10] 
+
+    vocab = pre_bpe_vocab_initialize(sorted_10)
+    #vocab = vocab_initialize(sorted_20)
+    
+    with open(path2+'vocabs_10.json', 'w' ) as f:
+        f.write(json.dumps(vocab))
 
 if __name__ == '__main__':
-    main()
+    to_count = [1,2]
+    count_en(to_count)

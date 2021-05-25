@@ -12,7 +12,7 @@ from counter_utils import (json_save, json_read, normal_to_special, special_to_n
 from xutils_for_key_vars import make_key_vars  #clean !!
 from utils_from_vocProcess10 import bpe_find_to_tune_5, bpe_vocab_tunning5, bpe_find_to_tune_recursive_5 #clean!!!
 
-path0 = '/home/john/Notebook/preProject/create_vocabs/data/'
+path0 = 'data/'
 file1 = 'vocabs_10.json'
 file2 = 'josa_dict_2020_03_14.json'
 path2 = 'out_data/'
