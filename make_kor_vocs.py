@@ -4,6 +4,8 @@ import json
 from collections import Counter
 from tqdm.notebook import tqdm
 import copy
+import os
+from os.path import join, exists
 #from to_k_alpha import convert
 #from utils import *
 
@@ -11,12 +13,19 @@ from counter_utils import (json_save, json_read, normal_to_special, special_to_n
                            dict_merge, dict_subtract, bpe_voc_in_normal, bpe_josa_by_len, normal_to_special2) #clean !!
 from xutils_for_key_vars import make_key_vars  #clean !!
 from utils_from_vocProcess10 import bpe_find_to_tune_5, bpe_vocab_tunning5, bpe_find_to_tune_recursive_5 #clean!!!
+from modify_vocs import modify_ko_vocs
 
 path0 = 'data/'
 file1 = 'vocabs_10.json'
 file2 = 'josa_dict_2020_03_14.json'
 path2 = 'out_data/'
 path = path0+path2
+if not exists(path):
+    os.makedirs(path)
+    
+path3 = path0+"out_data2/" #'/NMT_new/folder_Utils/test_data/'
+if not exists(path3):
+    os.makedirs(path3)
 
 def extract_nouns_verbs_subs():
     
@@ -34,8 +43,6 @@ def extract_nouns_verbs_subs():
     key_vars = make_key_vars()
     #path = path0+'/generated_Data11/preproc_0311/'
     #path = path0+'/NMT_new/folder_Utils/test_data_20210514/'
-    path = path0+path2
-
 
     josa_dict = json_read(path0+file2)
 
@@ -364,10 +371,9 @@ def tuning_NVS(make_to):
 
 def save_extracted_vocs(top_nk, top_vk, mid_k, sub_k):
     #path0 = '/home/john/Notebook/preProject'
-    path = path0+path2 #'/NMT_new/folder_Utils/test_data/'
-    
+  
     extracted_vocs = {'nouns' : top_nk, 'verbs':top_vk, 'mids': mid_k, 'subs':sub_k}
-    json_save(extracted_vocs,path+'extracted_vocabs_nvs')
+    json_save(extracted_vocs,path3+'extracted_vocabs_nvs')
     
     return extracted_vocs
 
@@ -394,17 +400,20 @@ def make_my_vocabs():
     extracted_vocabs = extract_nouns_verbs_subs()
     make_to = make_to_noun_verb_subs(extracted_vocabs)
     top_nk, top_vk, mid_k, sub_k = tuning_NVS(make_to)
+
     extracted_vocs = save_extracted_vocs(top_nk, top_vk, mid_k, sub_k)
 
     #path = path0+path2
     #extracted_vocs = json_read(path+'extracted_vocabs_nvs.json')
     new_vocs_small, new_vocs_all = make_new_vocs(extracted_vocs)
-    with open(path+"new_vocs_small.json","w") as f:
+    with open(path3+"new_vocs_small.json","w") as f:
         f.write(json.dumps(new_vocs_small))
-    with open(path+"new_vocs_all.json","w") as f:
+    with open(path3+"new_vocs_all.json","w") as f:
         f.write(json.dumps(new_vocs_all))
+
+    modify_ko_vocs()
     
-    return new_vocs_small, new_vocs_all
+    #return new_vocs_small, new_vocs_all
 
 if __name__ == '__main__':
     

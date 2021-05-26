@@ -41,12 +41,13 @@ def modify_ko_vocs():
     key_vars = make_key_vars()
     #vocabs = to_get_vocabs2()
     date_now = time.strftime('%Y_%m_%d_%H_%M', time.localtime(time.time()))
-    path = "./data/"
+    path = "./data/out_data2/"
+    path0 = "./data/"
 
-    new_vocs = json_read('./data/out_data/new_vocs_small.json')
+    new_vocs = json_read(path + 'new_vocs_small.json')
     new_vocs_small = new_vocs
 
-    extracted_vocs = json_read('./data/out_data/extracted_vocabs_nvs.json')
+    extracted_vocs = json_read(path + 'extracted_vocabs_nvs.json')
 
 
     to_adjust = ['스러우','스럽','시끄러우','따가우','까끄러우','안쓰러우','부드러우','껄끄러우','보드라우','어려우','싱그러우','부끄러우','무서우']
@@ -161,8 +162,8 @@ def modify_ko_vocs():
     vocabs.pop(normal_to_special('러운',key_vars),1)
     vocabs['NotInVocabs'] = 1
 
-    json_save(extracted_vocs,path+'modified_extracted')
-    json_save(vocabs,path+'vocabs')
+    json_save(extracted_vocs,path0+'modified_extracted')
+    json_save(vocabs,path0+'vocabs')
 
 if __name__ == "__main__":
     modify_ko_vocs()

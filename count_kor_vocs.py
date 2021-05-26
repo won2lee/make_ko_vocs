@@ -4,6 +4,8 @@ import pandas as pd
 from collections import Counter
 from counter_utils import json_save
 
+import os
+from os.path import join, exists
 
 """
     초성 중성 종성 분리 하기
@@ -196,7 +198,11 @@ def main():
 def count_en(to_count):
     from glob import glob
     path = ""
-    path2 = "data/"
+    path1 = path + "data/"
+    path2 = path + "data/counted/"
+    if not exists(path2):
+        os.makedirs(path2)
+
     ko_wk = Counter()
     if 1 in to_count:      
         print('start reading wiki_files')
@@ -209,7 +215,7 @@ def count_en(to_count):
             ko_wk = word_count(X, ko_wk)     
         """        
         print("len(ko_wk) :{}".format(len(ko_wk)))
-        json_save(ko_wk,path+path2+'counted_vocs_ko_wk')
+        json_save(ko_wk,path2+'counted_vocs_ko_wk')
 
     """
     en_news = Counter()
@@ -231,17 +237,17 @@ def count_en(to_count):
             d_out =  get_text(' '.join(list(parallel['원문'])), f_list=False)
             ko_news += Counter(d_out.split(' '))
         print("len(ko_news) :{}".format(len(ko_news)))  
-        json_save(ko_news,path+path2+'counted_vocs_ko_news')
+        json_save(ko_news,path2+'counted_vocs_ko_news')
 
     counters = ko_news+ko_wk
-    json_save(counters,path+path2+'counted_vocs')
+    json_save(counters,path2+'counted_ko_vocs')
     sorted_count = sorted(counters.items(), key=lambda x:x[1], reverse=True)
     sorted_10 = [x for x in sorted_count if x[1] > 10] 
 
     vocab = pre_bpe_vocab_initialize(sorted_10)
     #vocab = vocab_initialize(sorted_20)
     
-    with open(path2+'vocabs_10.json', 'w' ) as f:
+    with open(path1+'vocabs_10.json', 'w' ) as f:
         f.write(json.dumps(vocab))
 
 if __name__ == '__main__':
