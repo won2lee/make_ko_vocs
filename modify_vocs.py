@@ -49,6 +49,8 @@ def modify_ko_vocs():
 
     extracted_vocs = json_read(path + 'extracted_vocabs_nvs.json')
 
+    extracted_vocs["nouns"] = {k:v/100 if len(special_to_normal(k,key_vars))<2 else v for k,v in extracted_vocs["nouns"].items()} 
+
 
     to_adjust = ['스러우','스럽','시끄러우','따가우','까끄러우','안쓰러우','부드러우','껄끄러우','보드라우','어려우','싱그러우','부끄러우','무서우']
     to_adjust += ['움직이','반짝이','담그',',담기','결정지','가지','데치','무치','걷히','열리','사라지','덧붙이','오르','줄어드']

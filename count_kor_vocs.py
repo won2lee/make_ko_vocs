@@ -48,24 +48,23 @@ def get_text(file, f_list=True):
             data = f.read()
     else:
         data = file
-    p = re.compile(r'\<.*\>')
+    #p = re.compile(r'\<.*\>')
     q = re.compile(r'[^0-9a-zA-Z가-힣\-]')
-    d_out = p.sub(' ', data)
-    d_out = q.sub(' ', d_out)
+    d_out = q.sub(' ', data)
+    #d_out = q.sub(' ', d_out)
     return re.sub('\s{1,}',' ', d_out)
 
 def get_sentences(file):
     with open(file, 'r') as f:
         data = f.read()
 
-    p = re.compile(r'\<.*\>')
-    d_out = p.sub(' ', data)
+    #p = re.compile(r'\<.*\>')
+    #d_out = p.sub(' ', data)
 
     q = re.compile(r'[^0-9a-zA-Z가-힣\-\.]')
-    d_out = q.sub(' ', d_out)
+    d_out = q.sub(' ', data) #d_out)
     d_out = re.sub('\s{1,}',' ', d_out)
-
-    
+  
     sentences = d_out.split('. ')
     return [re.sub('\.',' ',s) for s in sentences]
 
@@ -195,7 +194,7 @@ def main():
     with open('vocabs_10_check.json', 'w' ) as f:
         f.write(json.dumps(vocab))
 
-def count_en(to_count):
+def count_ko(to_count):
     from glob import glob
     path = ""
     path1 = path + "data/"
@@ -239,7 +238,7 @@ def count_en(to_count):
         print("len(ko_news) :{}".format(len(ko_news)))  
         json_save(ko_news,path2+'counted_vocs_ko_news')
 
-    counters = ko_news+ko_wk
+    counters = ko_news+ko_news+ko_wk  # wk 와 news의 비중 조정
     json_save(counters,path2+'counted_ko_vocs')
     sorted_count = sorted(counters.items(), key=lambda x:x[1], reverse=True)
     sorted_10 = [x for x in sorted_count if x[1] > 10] 
@@ -252,4 +251,4 @@ def count_en(to_count):
 
 if __name__ == '__main__':
     to_count = [1,2]
-    count_en(to_count)
+    count_ko(to_count)
